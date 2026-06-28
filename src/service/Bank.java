@@ -1,37 +1,82 @@
 package service;
 
+import DAO.AccountDAO;
 import entities.BankAccount;
-import entities.CurrentAccount;
-import entities.SavingsAccount;
-
-import java.util.HashMap;
 
 public class Bank {
-        private final HashMap<Integer, BankAccount> bankAccounts;
-        private int accountNumber;
+
+    private final AccountDAO dao;
 
     public Bank() {
-        this.bankAccounts = new HashMap<>();
-        this.accountNumber = 1001;
+
+        dao = new AccountDAO();
+
+        dao.createTable();
     }
 
-    public void createSavingsAccount(String name, double initialBalance){
-        BankAccount savingsAccount = new SavingsAccount(accountNumber,name,initialBalance);
-        bankAccounts.put(accountNumber,savingsAccount);
-        System.out.println("The Savings Account for user "+name+" has been created.");
-        System.out.println("The Account for the user "+name+" is "+accountNumber);
-        accountNumber++;
+    private int generateAccountNumber() {
 
+        return (int) (Math.random() * 900000000)
+                + 100000000;
     }
-    public void createCurrentAccount(String name, double initialBalance){
-        BankAccount currentAccount = new CurrentAccount(accountNumber,name,initialBalance);
-        bankAccounts.put(accountNumber,currentAccount);
-        System.out.println("The Current Account for user "+name+" has been created.");
-        System.out.println("The Account for the user "+name+" is "+accountNumber);
-        accountNumber++;
+
+    public void createSavingsAccount(String name,
+                                     double initialBalance) {
+
+        int accountNumber =
+                generateAccountNumber();
+
+        dao.insertAccount(
+                accountNumber,
+                name,
+                initialBalance,
+                "SAVINGS"
+        );
+
+        System.out.println(
+                "The Savings Account for user "
+                        + name +
+                        " has been created."
+        );
+
+        System.out.println(
+                "The Account for the user "
+                        + name +
+                        " is "
+                        + accountNumber
+        );
     }
+
+    public void createCurrentAccount(String name,
+                                     double initialBalance) {
+
+        int accountNumber =
+                generateAccountNumber();
+
+        dao.insertAccount(
+                accountNumber,
+                name,
+                initialBalance,
+                "CURRENT"
+        );
+
+        System.out.println(
+                "The Current Account for user "
+                        + name +
+                        " has been created."
+        );
+
+        System.out.println(
+                "The Account for the user "
+                        + name +
+                        " is "
+                        + accountNumber
+        );
+    }
+
     public BankAccount findAccount(int accountNumber) {
-        return bankAccounts.get(accountNumber);
+
+        return dao.getAccount(accountNumber);
     }
 
     public void deposit(int accountNumber,
@@ -41,11 +86,19 @@ public class Bank {
                 findAccount(accountNumber);
 
         if (account == null) {
-            System.out.println("Account not found.");
+
+            System.out.println(
+                    "Account not found."
+            );
             return;
         }
 
         account.deposit(amount);
+
+        dao.updateBalance(
+                accountNumber,
+                account.getBalance()
+        );
     }
 
     public void withdraw(int accountNumber,
@@ -55,11 +108,19 @@ public class Bank {
                 findAccount(accountNumber);
 
         if (account == null) {
-            System.out.println("Account not found.");
+
+            System.out.println(
+                    "Account not found."
+            );
             return;
         }
 
         account.withdraw(amount);
+
+        dao.updateBalance(
+                accountNumber,
+                account.getBalance()
+        );
     }
 
     public void transfer(int fromAccount,
@@ -72,8 +133,12 @@ public class Bank {
         BankAccount receiver =
                 findAccount(toAccount);
 
-        if (sender == null || receiver == null) {
-            System.out.println("Account not found.");
+        if (sender == null ||
+                receiver == null) {
+
+            System.out.println(
+                    "Account not found."
+            );
             return;
         }
 
@@ -81,7 +146,19 @@ public class Bank {
 
         receiver.deposit(amount);
 
-        System.out.println("Transfer successful.");
+        dao.updateBalance(
+                fromAccount,
+                sender.getBalance()
+        );
+
+        dao.updateBalance(
+                toAccount,
+                receiver.getBalance()
+        );
+
+        System.out.println(
+                "Transfer successful."
+        );
     }
 
     public void displayBalance(int accountNumber) {
@@ -90,13 +167,16 @@ public class Bank {
                 findAccount(accountNumber);
 
         if (account == null) {
-            System.out.println("Account not found.");
+
+            System.out.println(
+                    "Account not found."
+            );
             return;
         }
 
         System.out.println(
-                "Current Balance: ₹" +
-                        account.getBalance()
+                "Current Balance: ₹"
+                        + account.getBalance()
         );
     }
 
@@ -106,7 +186,10 @@ public class Bank {
                 findAccount(accountNumber);
 
         if (account == null) {
-            System.out.println("Account not found.");
+
+            System.out.println(
+                    "Account not found."
+            );
             return;
         }
 
